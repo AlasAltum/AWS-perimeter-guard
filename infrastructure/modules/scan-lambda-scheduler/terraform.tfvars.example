@@ -1,0 +1,38 @@
+# ============================================
+# AWS Perimeter Guard - Terraform Configuration
+# ============================================
+#
+# Copy this file to terraform.tfvars and update values according to your needs
+aws_region = "us-east-1"
+scan_regions = [
+  "us-east-1",
+  "us-west-2",
+]
+# Schedule: rate(24 hours) or cron(0 8 * * ? *)
+scan_schedule = "cron(0 8 * * ? *)"
+
+lambda_timeout     = 300 # 5 minutes
+lambda_memory_size = 256 # MB
+log_retention_days = 7   # Days
+
+# ============================================
+# Multi-Account Configuration
+# ============================================
+
+# Specify individual target account IDs
+# Leave empty [] to scan only the central account
+target_accounts = [
+  # "222222222222",
+  # "333333333333"
+]
+
+# Name of the IAM role in target accounts (must be manually created)
+# This role must exist in each target account you want to scan
+scan_role_name = "ARMOR-WAF-checker-role"
+
+# External ID for additional security - REQUIRED
+# Generate a strong random value to prevent confused deputy attacks:
+#   Linux/Mac: uuidgen
+#   Or: openssl rand -base64 32
+# IMPORTANT: Keep this secret and use the same value in all target accounts
+external_id = "ADD_HERE_SOME_SECURE_ID"
