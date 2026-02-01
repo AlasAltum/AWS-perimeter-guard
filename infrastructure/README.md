@@ -1,6 +1,6 @@
 # AWS Perimeter Guard - Infrastructure
 
-This directory contains Terraform modules and Terragrunt configurations for deploying AWS Perimeter Guard across multiple AWS accounts.
+This directory contains Terraform modules and Terragrunt configurations for deploying AWS Perimeter Guard across multiple AWS accounts using a lambda triggered by a scheduler periodically.
 
 ## Directory Structure
 
@@ -10,7 +10,7 @@ infrastructure/
 │   ├── scan-lambda-scheduler/        # Central account: Lambda + EventBridge
 │   └── scan-role/                    # Scanned accounts: IAM role
 └── terragrunt/                       # Terragrunt configurations
-    ├── root.hcl                      # Shared configuration (DO NOT EDIT unless you know what you're doing)
+    ├── root.hcl                      # Shared configuration
     ├── central_account/              # Deploy Lambda here
     ├── scanned_account_dev1/         # Example: dev account
     └── scanned_account_prod1/        # Example: prod account
@@ -57,7 +57,7 @@ Edit `terragrunt/root.hcl` and set:
 locals {
   central_account_id = "YOUR_CENTRAL_ACCOUNT_ID"  # Where Lambda runs
   scan_role_name     = "ARMOR-WAF-checker-role"   # Role name (same in all accounts)
-  external_id        = "GENERATE_A_SECURE_VALUE"  # uuidgen or openssl rand -base64 32
+  external_id        = "GENERATE_A_SECURE_VALUE"  # uuidgen or openssl rand -base64 32. Important to avoid confused deputy attacks
 }
 ```
 
@@ -65,16 +65,16 @@ locals {
 
 ### 2. Deploy Central Account
 
+1) Edit terragrunt.hcl to set target_accounts list
+
 ```bash
 # Set credentials for the CENTRAL account
-export AWS_PROFILE=central-account
+export AWS_ACCESS_KEY_ID=your-access-key
+export AWS_SECRET_ACCESS_KEY=your-secret-key
+export AWS_DEFAULT_REGION=us-east-1
 # Or use: aws configure / environment variables / SSO
-
 # Navigate to central account config
 cd infrastructure/terragrunt/central_account
-
-# Edit terragrunt.hcl to set target_accounts list
-vim terragrunt.hcl
 
 # Deploy
 terragrunt init
@@ -84,6 +84,7 @@ terragrunt apply
 
 ### 3. Deploy Scanned Accounts
 
+In this case, most probably you will not need to modify any terragrunt file. 
 For **each** account you want to scan:
 
 ```bash
