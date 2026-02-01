@@ -70,7 +70,9 @@ AWS Perimeter Guard can be used in two ways:
 1. **As a CLI tool** - Run scans directly from your terminal
 2. **As an AWS Lambda function** - Automated scheduled scans across multiple accounts
 
-#### Basic Usage (CLI)
+### 1) Basic Usage (CLI)
+
+For quick tests and validation:
 
 ```bash
 # Activate virtual environment
@@ -84,7 +86,7 @@ python -m src.main scan --output waf-audit-$(date +%Y%m%d).csv
 ```
 
 
-### Lambda Deployment (Automated scanning on AWS)
+### 2) Lambda Deployment (Automated scanning on AWS)
 
 For automated multi-account scanning, deploy AWS Perimeter Guard as a Lambda function.
 
