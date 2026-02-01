@@ -7,6 +7,9 @@ locals {
   
   # Get current account ID
   central_account_id = data.aws_caller_identity.current.account_id
+  
+  # Use provided source dir or fallback to relative path
+  lambda_source_path = var.lambda_source_dir != "" ? var.lambda_source_dir : "${path.module}/../../../src"
 }
 
 # Get current account identity
@@ -25,21 +28,25 @@ module "lambda_function" {
   handler       = "src.adapters.inbound.lambda_handler.handler"
   runtime       = "python3.12"
   
-  # Package only the src directory (path relative to infrastructure/modules/scan-lambda-scheduler)
+  # Package the src directory with pip dependencies
+  # First entry: Install pip dependencies (will be at root)
+  # Second entry: Place source code under src/ prefix (overwrites any conflicting files)
   source_path = [
     {
-      path          = "${path.module}/../../../src"
+      path             = local.lambda_source_path
+      pip_requirements = true
+    },
+    {
+      path          = local.lambda_source_path
       prefix_in_zip = "src"
-      excludes      = [
-        "adapters/inbound/cli_adapter.py",
-        "main.py"
+      patterns = [
+        "!requirements.txt"  # Don't duplicate requirements.txt
       ]
     }
   ]
   
   timeout     = var.lambda_timeout
   memory_size = var.lambda_memory_size
-  
   # CloudWatch Logs
   cloudwatch_logs_retention_in_days = var.log_retention_days
   
@@ -237,3 +244,4 @@ resource "aws_scheduler_schedule" "scanner_schedule" {
     }
   }
 }
+
