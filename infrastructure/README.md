@@ -61,6 +61,8 @@ locals {
 }
 ```
 
+**NOTE:** You may also want to modify the variable `common_tags`, since it can help to better organize your resources.
+
 **IMPORTANT:** The `external_id` must be kept secret and must match in all accounts.
 
 ### 2. Deploy Central Account
@@ -141,6 +143,27 @@ cat output.json
 
 ## Troubleshooting
 
+### State Management Considerations
+
+**Terragrunt (Recommended):** State is automatically managed with S3 and DynamoDB as described in the [State Management](#state-management) section above.
+
+**Terraform Direct:** When using Terraform modules directly without Terragrunt, you may want to configure a remote state manually. If that is the case, add a `backend` block to your Terraform configuration:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "your-terraform-state-bucket"
+    key            = "perimeter-guard/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "your-terraform-locks-table"
+    encrypt        = true
+  }
+}
+```
+
+Create the S3 bucket and DynamoDB table beforehand, or use local state (not recommended for production).
+
+
 ### "AccessDenied when assuming role"
 - IAM role not deployed in target account
 - Wrong `external_id` in central vs scanned account
@@ -161,3 +184,8 @@ aws dynamodb create-table \
   --billing-mode PAY_PER_REQUEST \
   --region us-east-1
 ```
+
+
+### Pricing considerations
+
+You will pay for lambda and eventbridge schedulers usage. However, this cost is negligible. In our company, having more than 500 scanned resources, each lambda report generation took approximately 150 seconds and it used up to 120 MB.
